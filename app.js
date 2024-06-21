@@ -1,3 +1,4 @@
+var map;
 var layer;
 var elections;
 // This array helps maintaining source order
@@ -15,8 +16,35 @@ var COLORS = {
     "Stimmen AfD": "#33f",
     "Stimmen Piraten": "#f80",
 };
+var GEOJSONS = {
+    "Europawahl 1999": "bezirke_l2019.geojson",
+    "Kommunalwahl 1999": "bezirke_k2019.geojson",
+    "Landtagswahl 1999": "bezirke_l2019.geojson",
+    "Bundestagswahl 2002": "bezirke_l2019.geojson",
+    "Europawahl 2004": "bezirke_l2019.geojson",
+    "Kommunalwahl 2004": "bezirke_k2019.geojson",
+    "Landtagswahl 2004": "bezirke_l2019.geojson",
+    "Bundestagswahl 2005": "bezirke_l2019.geojson",
+    "Bundestagswahl 2009": "bezirke_l2019.geojson",
+    "Europawahl 2009": "bezirke_l2019.geojson",
+    "Kommunalwahl 2009": "bezirke_k2019.geojson",
+    "Landtagswahl 2009": "bezirke_l2019.geojson",
+    "Bundestagswahl 2013": "bezirke_l2019.geojson",
+    "Europawahl 2014": "bezirke_l2019.geojson",
+    "Kommunalwahl 2014": "bezirke_k2019.geojson",
+    "Landtagswahl 2014": "bezirke_l2019.geojson",
+    "Bundestagswahl 2017": "bezirke_l2019.geojson",
+    "Europawahl 2019": "bezirke_l2019.geojson",
+    "Kommunalwahl 2019": "bezirke_k2019.geojson",
+    "Landtagswahl 2019": "bezirke_l2019.geojson",
+    "Stadtbezirks- und Ortschaftsratswahl 2019": "bezirke_k2019.geojson",
+    "Bundestagswahl 2021": "bezirke_b2021.geojson",
+    "Europawahl 2024": "bezirke_e2024.geojson",
+};
+﻿
 var curElection = "Europawahl 2024";
 var curParty = "Stimmen Piraten";
+var curGeojson = "";
 
 var maxPercent = 0;
 
@@ -30,64 +58,68 @@ function render() {
     });
     console.log("maxPercent", maxPercent);
 
-    // trigger geojson rerender
-    if (layer) {
+    var newGeojson = GEOJSONS[curElection];
+    if (newGeojson !== curGeojson) {
+	if (layer) {
+	    layer.remove()
+	}
+
+	curGeojson = newGeojson;
+	fetch(curGeojson).then(function(res) {
+	    return res.json();
+	}).then(function(geojson) {
+	    layer = L.geoJSON(geojson, {
+		style: function(feature) {
+		    if (!elections) {
+			return;
+		    }
+
+		    // console.log("style", feature.properties);
+		    var wb = feature.properties.wb;
+		    var record = elections[curElection][wb];
+		    if (record) {
+			var votes = record[curParty];
+			var percent = 100 * votes / record["Stimmen gültig"];
+			return {
+			    color: "#227",
+			    weight: 1,
+			    lineJoin: "miter-clip",
+			    fillColor: "color-mix(in srgb, " +
+				COLORS[curParty] +
+				" " +
+				Math.ceil(100 * percent / maxPercent) +
+				"%, #FFF)",
+			    fillOpacity: 0.7,
+			};
+		    } else {
+			console.warn("Not found:", feature.properties);
+			return {
+			    color: "#227",
+			    weight: 1,
+			    lineJoin: "miter-clip",
+			    fillColor: "#333",
+			    fillOpacity: 0,
+			};
+		    }
+		},
+		onEachFeature: function(feature, layer) {
+		    layer.bindTooltip(feature.properties.wb_text);
+		    // layer.bindPopup();
+		},
+	    }).addTo(map);
+	});
+    } else if (layer) {
+	// trigger geojson rerender
 	layer.resetStyle();
     }
 }
 
 window.onload = function() {
-    document.getElementById("map").innerText = "Download Wahlbezirke..."
-    fetch("bezirke2024.geojson").then(function(res) {
-	return res.json();
-    }).then(function(geojson) {
-	var map = L.map('map').setView([51.05, 13.75], 13);
-	L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-	    maxZoom: 19,
-	    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-	}).addTo(map);
-	layer = L.geoJSON(geojson, {
-	    style: function(feature) {
-		if (!elections) {
-		    return;
-		}
-
-		// console.log("style", feature.properties);
-		var wb = feature.properties.wb;
-		var record = elections[curElection][wb];
-		if (record) {
-		    var votes = record[curParty];
-		    var percent = 100 * votes / record["Stimmen gültig"];
-		    return {
-			color: "#227",
-			weight: 1,
-			lineJoin: "miter-clip",
-			fillColor: "color-mix(in srgb, " +
-			    COLORS[curParty] +
-			    " " +
-			    Math.ceil(100 * percent / maxPercent) +
-			    "%, #FFF)",
-			fillOpacity: 0.75,
-		    };
-		} else {
-		    console.warn("Not found:", feature.properties);
-		    return {
-			color: "#227",
-			weight: 1,
-			lineJoin: "miter-clip",
-			fillColor: "#333",
-			fillOpacity: 0,
-		    };
-		}
-	    },
-	    onEachFeature: function(feature, layer) {
-		layer.bindTooltip(feature.properties.wb_text);
-	    },
-	// }).on("click", function(a) {
-	//     console.log("click", a.layer?.feature?.properties?.wb);
-	//     a.layer?.openTooltip();
-	}).addTo(map);
-    });
+    map = L.map('map').setView([51.05, 13.75], 13);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	maxZoom: 19,
+	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
 
     fetch("all.csv").then(function(res) {
 	return res.text();
