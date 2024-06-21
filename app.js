@@ -1,12 +1,14 @@
 var layer;
 var elections;
+// This array helps maintaining source order
+var electionList;
 var COLORS = {
     "Stimmen ungültig": "#f00",
     "Stimmen gültig": "#0f0",
     "Stimmen CDU": "#000",
     "Stimmen SPD": "#f00",
     "Stimmen Die Linke": "#a0a",
-    "Stimmen FDP": "#aa0",
+    "Stimmen FDP": "#ff0",
     "Stimmen Grüne": "#0f0",
     "Stimmen Rechte Parteien": "#553",
     "Stimmen sonstiger Parteien": "#333",
@@ -19,7 +21,7 @@ var curParty = "Stimmen Piraten";
 var maxPercent = 0;
 
 function render() {
-    maxPercent = 0;
+    maxPercent = 0.01;
     Object.keys(elections[curElection]).forEach(function(wb) {
 	var record = elections[curElection][wb];
 	var votes = record[curParty];
@@ -60,8 +62,12 @@ window.onload = function() {
 			color: "#227",
 			weight: 1,
 			lineJoin: "miter-clip",
-			fillColor: COLORS[curParty],
-			fillOpacity: maxPercent > 0 ? percent / maxPercent : 0,
+			fillColor: "color-mix(in srgb, " +
+			    COLORS[curParty] +
+			    " " +
+			    Math.ceil(100 * percent / maxPercent) +
+			    "%, #FFF)",
+			fillOpacity: 0.75,
 		    };
 		} else {
 		    console.warn("Not found:", feature.properties);
@@ -70,7 +76,7 @@ window.onload = function() {
 			weight: 1,
 			lineJoin: "miter-clip",
 			fillColor: "#333",
-			fillOpacity: 0.5,
+			fillOpacity: 0,
 		    };
 		}
 	    },
@@ -137,6 +143,7 @@ window.onload = function() {
 	partiesDiv.append();
 
 	elections = {};
+	electionList = [];
 	lines.forEach(function(line) {
 	    var record = {};
 	    columns.forEach(function(column, i) {
@@ -149,11 +156,12 @@ window.onload = function() {
 	    var election = record.Wahlart + " " + record.Jahr;
 	    if (!elections[election]) {
 		elections[election] = {};
+		electionList.push(election);
 	    }
 	    elections[election][record.Wahlbezirk] = record;
 	});
 	var electionsSelect = document.getElementById("elections");
-	Object.keys(elections).forEach(function(election) {
+	electionList.forEach(function(election) {
 	    var option = document.createElement("option");
 	    option.setAttribute("value", election);
 	    option.append(election);
@@ -163,6 +171,7 @@ window.onload = function() {
 	    curElection = electionsSelect.value;
 	    render();
 	});
+
 	electionsSelect.value = curElection;
 	render();
     })
