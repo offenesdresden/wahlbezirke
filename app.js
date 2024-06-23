@@ -45,23 +45,20 @@ var curElection = "Europawahl 2024";
 var curParty = "Stimmen Piraten";
 var curGeojson = "";
 
+var minPercent = 0;
 var maxPercent = 0;
 
 function render() {
+    minPercent = 100;
     maxPercent = 0.01;
     Object.keys(elections[curElection]).forEach(function(wb) {
 	var record = elections[curElection][wb];
 	var votes = record[curParty];
-	var total = Number(
-	    record["Stimmen gültig"] ||
-		record["Wähler mit WS"] ||
-		record["Wähler"] ||
-		record["Wahlberechtigte mit WS"] ||
-		record["Wahlberechtigte"]
-	);
-	var percent = 100 * votes / Math.max(total, 1);
+	var percent = 100 * votes / record.total;
 	maxPercent = Math.max(percent, maxPercent);
+	minPercent = Math.min(percent, minPercent);
     });
+    maxPercent = Math.max(minPercent + 0.01, maxPercent);
 
     var newGeojson = GEOJSONS[curElection];
     if (newGeojson !== curGeojson) {
@@ -89,9 +86,9 @@ function render() {
 			    weight: 1,
 			    lineJoin: "miter-clip",
 			    fillColor: "color-mix(in srgb, " +
-				COLORS[curParty] +
+				(COLORS[curParty] || "#070") +
 				" " +
-				Math.ceil(100 * percent / maxPercent) +
+				Math.floor(100 * (percent - minPercent) / (maxPercent - minPercent)) +
 				"%, #FFF)",
 			    fillOpacity: 0.7,
 			};
@@ -118,12 +115,11 @@ function render() {
 			div.append(h3);
 			var record = elections[curElection][wb];
 			if (record) {
-			    var total = record["Stimmen gültig"];
 			    Object.keys(COLORS).forEach(function(column) {
 				var partyDiv = document.createElement("div");
 				partyDiv.setAttribute("class", "party");
 				var votes = record[column];
-				var percent = Math.round(1000 * votes / total) / 10;
+				var percent = Math.round(1000 * votes / record.total) / 10;
 				var p1 = document.createElement("p");
 				p1.setAttribute("class", "partyname");
 				p1.append(column.replace(/^Stimmen /, ""));
@@ -131,7 +127,7 @@ function render() {
 				var p2 = document.createElement("p");
 				p2.setAttribute(
 				    "style",
-				    "width: " + Math.ceil(200 * votes / total) + "px; " +
+				    "width: " + Math.ceil(200 * votes / record.total) + "px; " +
 					"border-bottom: 2px solid " + COLORS[column]
 				);
 				p2.append(percent + " %");
@@ -221,6 +217,13 @@ window.onload = function() {
 		}
 		record[column] = value;
 	    });
+	    record.total = Math.max(1, Number(
+		record["Stimmen gültig"] ||
+		    record["Wähler mit WS"] ||
+		    record["Wähler"] ||
+		    record["Wahlberechtigte mit WS"] ||
+		    record["Wahlberechtigte"]
+	    ));
 	    var election = record.Wahlart + " " + record.Jahr;
 	    if (!elections[election]) {
 		elections[election] = {};
