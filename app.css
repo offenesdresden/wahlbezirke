@@ -1,3 +1,7 @@
+body {
+    margin: 0;
+}
+
 #map {
     height: 90vh;
 }
@@ -10,6 +14,15 @@ h2 {
 h3 {
     font-size: 120%;
     margin: 0.5rem 0;
+}
+
+select {
+    margin: 0.5rem 1rem;
+}
+
+#parties label {
+    white-space: nowrap;
+    margin: 0.5rem 1rem;
 }
 
 .party {

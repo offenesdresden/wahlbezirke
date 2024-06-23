@@ -70,6 +70,10 @@ function render() {
 	fetch(curGeojson, { cache: "force-cache" }).then(function(res) {
 	    return res.json();
 	}).then(function(geojson) {
+	    if (curGeojson !== newGeojson) {
+		return;
+	    }
+
 	    layer = L.geoJSON(geojson, {
 		style: function(feature) {
 		    if (!elections) {
