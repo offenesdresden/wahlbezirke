@@ -4,13 +4,13 @@ var elections;
 // This array helps maintaining source order
 var electionList;
 var COLORS = {
-    "Stimmen ungültig": "#f00",
-    "Stimmen gültig": "#0f0",
+    "Stimmen ungültig": "#a00",
+    "Stimmen gültig": "#0a0",
     "Stimmen CDU": "#000",
-    "Stimmen SPD": "#f00",
+    "Stimmen SPD": "#a00",
     "Stimmen Die Linke": "#a0a",
-    "Stimmen FDP": "#ff0",
-    "Stimmen Grüne": "#0f0",
+    "Stimmen FDP": "#aa0",
+    "Stimmen Grüne": "#0a0",
     "Stimmen Rechte Parteien": "#553",
     "Stimmen sonstiger Parteien": "#333",
     "Stimmen AfD": "#33f",
@@ -53,10 +53,16 @@ function render() {
     Object.keys(elections[curElection]).forEach(function(wb) {
 	var record = elections[curElection][wb];
 	var votes = record[curParty];
-	var percent = 100 * votes / record["Stimmen gültig"];
+	var total = Number(
+	    record["Stimmen gültig"] ||
+		record["Wähler mit WS"] ||
+		record["Wähler"] ||
+		record["Wahlberechtigte mit WS"] ||
+		record["Wahlberechtigte"]
+	);
+	var percent = 100 * votes / Math.max(total, 1);
 	maxPercent = Math.max(percent, maxPercent);
     });
-    console.log("maxPercent", maxPercent);
 
     var newGeojson = GEOJSONS[curElection];
     if (newGeojson !== curGeojson) {
@@ -65,7 +71,7 @@ function render() {
 	}
 
 	curGeojson = newGeojson;
-	fetch(curGeojson).then(function(res) {
+	fetch(curGeojson, { cache: "force-cache" }).then(function(res) {
 	    return res.json();
 	}).then(function(geojson) {
 	    layer = L.geoJSON(geojson, {
@@ -74,7 +80,6 @@ function render() {
 			return;
 		    }
 
-		    // console.log("style", feature.properties);
 		    var wb = feature.properties.wb;
 		    var record = elections[curElection][wb];
 		    if (record) {
@@ -92,7 +97,6 @@ function render() {
 			    fillOpacity: 0.7,
 			};
 		    } else {
-			console.warn("Not found:", feature.properties);
 			return {
 			    color: "#227",
 			    weight: 1,
@@ -104,7 +108,6 @@ function render() {
 		},
 		onEachFeature: function(feature, layer) {
 		    layer.bindTooltip(feature.properties.wb_text);
-		    // layer.bindPopup();
 		},
 	    }).addTo(map);
 	});
