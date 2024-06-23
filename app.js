@@ -5,7 +5,6 @@ var elections;
 var electionList;
 var COLORS = {
     "Stimmen ungültig": "#a00",
-    "Stimmen gültig": "#0a0",
     "Stimmen CDU": "#000",
     "Stimmen SPD": "#a00",
     "Stimmen Die Linke": "#a0a",
@@ -108,6 +107,40 @@ function render() {
 		},
 		onEachFeature: function(feature, layer) {
 		    layer.bindTooltip(feature.properties.wb_text);
+		    layer.bindPopup(function() {
+			var wb = feature.properties.wb;
+			var div = document.createElement("div");
+			var h2 = document.createElement("h2");
+			h2.append("Wahlkreis " + wb);
+			div.append(h2);
+			var h3 = document.createElement("h3");
+			h3.append(feature.properties.wb_text);
+			div.append(h3);
+			var record = elections[curElection][wb];
+			if (record) {
+			    var total = record["Stimmen gültig"];
+			    Object.keys(COLORS).forEach(function(column) {
+				var partyDiv = document.createElement("div");
+				partyDiv.setAttribute("class", "party");
+				var votes = record[column];
+				var percent = Math.round(1000 * votes / total) / 10;
+				var p1 = document.createElement("p");
+				p1.setAttribute("class", "partyname");
+				p1.append(column.replace(/^Stimmen /, ""));
+				partyDiv.append(p1);
+				var p2 = document.createElement("p");
+				p2.setAttribute(
+				    "style",
+				    "width: " + Math.ceil(200 * votes / total) + "px; " +
+					"border-bottom: 2px solid " + COLORS[column]
+				);
+				p2.append(percent + " %");
+				partyDiv.append(p2);
+				div.append(partyDiv);
+			    });
+			}
+			return div;
+		    });
 		},
 	    }).addTo(map);
 	});
