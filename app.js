@@ -106,6 +106,7 @@ function render() {
 		    layer.bindTooltip(feature.properties.wb_text);
 		    layer.bindPopup(function() {
 			var wb = feature.properties.wb;
+			var record = elections[curElection][wb];
 			var div = document.createElement("div");
 			var h2 = document.createElement("h2");
 			h2.append("Wahlkreis " + wb);
@@ -113,7 +114,6 @@ function render() {
 			var h3 = document.createElement("h3");
 			h3.append(feature.properties.wb_text);
 			div.append(h3);
-			var record = elections[curElection][wb];
 			if (record) {
 			    Object.keys(COLORS).forEach(function(column) {
 				var partyDiv = document.createElement("div");
@@ -135,6 +135,13 @@ function render() {
 				div.append(partyDiv);
 			    });
 			}
+			var p = document.createElement("p");
+			p.append(
+			    record["Wahlberechtigte"] + " Wahlberechtigte, " +
+				record["Wähler"] + " Wähler (" +
+				Math.floor(1000 * record.total / Number(record["Wahlberechtigte"])) / 10 + "%)"
+			);
+			div.append(p);
 			return div;
 		    });
 		},
