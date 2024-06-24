@@ -143,7 +143,7 @@ function render() {
 			p.append(
 			    record["Wahlberechtigte"] + " Wahlberechtigte, " +
 				record["Wähler"] + " Wähler (" +
-				Math.floor(1000 * record.total / Number(record["Wahlberechtigte"])) / 10 + "%)"
+				Math.floor(1000 * record["Wähler"] / Number(record["Wahlberechtigte"])) / 10 + "%)"
 			);
 			div.append(p);
 			return div;
