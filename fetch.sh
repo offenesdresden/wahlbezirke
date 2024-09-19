@@ -8,6 +8,7 @@ wget -O bezirke_k2019.geojson https://kommisdd.dresden.de/net4/public/ogcapi/col
 wget -O bezirke_l2019.geojson https://kommisdd.dresden.de/net4/public/ogcapi/collections/L1091/items
 wget -O bezirke_b2021.geojson https://kommisdd.dresden.de/net4/public/ogcapi/collections/L703/items
 wget -O bezirke_e2024.geojson https://kommisdd.dresden.de/net4/public/ogcapi/collections/L1565/items
+wget -O bezirke_l2024.geojson https://kommisdd.dresden.de/net4/public/ogcapi/collections/L1588/items
 
 wget https://unpkg.com/leaflet@1.9.4/dist/leaflet.css
 wget https://unpkg.com/leaflet@1.9.4/dist/leaflet.js
