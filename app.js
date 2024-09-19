@@ -39,6 +39,7 @@ var GEOJSONS = {
     "Stadtbezirks- und Ortschaftsratswahl 2019": "bezirke_k2019.geojson",
     "Bundestagswahl 2021": "bezirke_b2021.geojson",
     "Europawahl 2024": "bezirke_e2024.geojson",
+    "Kommunalwahl 2024": "bezirke_e2024.geojson",
     "Landtagswahl 2024": "bezirke_l2024.geojson",
 };
 ﻿
