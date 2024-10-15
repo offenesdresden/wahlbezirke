@@ -7,6 +7,7 @@ git co -b gh-pages
 
 git rm .gitignore
 git add *.js *.geojson *.css *.csv
-git push origin HEAD:gh-pages -f
+git commit -m "export"
+#git push origin HEAD:gh-pages -f
 
 git co main
